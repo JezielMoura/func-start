@@ -17,8 +17,22 @@ public class UserFunctions
         _mediatr = mediatr;
     }
 
-    [Function("user")]
-    public async Task<HttpResponseData> AddUser([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
+    [Function("User")]
+    public async Task<HttpResponseData> AddUser([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+    {
+        var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand>();
+        var commandResult = await _mediatr.Send(addUserCommand);
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+
+        response.WriteString(commandResult.ToString());
+
+        return response;
+    }
+
+    [Function("User")]
+    public async Task<HttpResponseData> EditUser([HttpTrigger(AuthorizationLevel.Anonymous, "put")] HttpRequestData req)
     {
         var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand>();
         var commandResult = await _mediatr.Send(addUserCommand);
