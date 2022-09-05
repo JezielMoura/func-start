@@ -14,7 +14,7 @@ public class AuthorizationMiddleware : IFunctionsWorkerMiddleware
             if (currentUser is null)
                 throw new UnauthorizedAccessException();
 
-            var functionName = context.FunctionDefinition.EntryPoint.Split(".").Last();
+            var functionName = context.FunctionDefinition.Name;
 
             if (!currentUser.Permissions.Contains(functionName))
                 throw new UnauthorizedAccessException();
