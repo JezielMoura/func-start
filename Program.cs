@@ -3,12 +3,13 @@ using FluentValidation;
 using MediatR;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults(builder =>
     {
-        builder.UseMiddleware<AuthenticationMiddleware>();
-        builder.UseMiddleware<AuthorizationMiddleware>();
+        builder.UseWhen<AuthenticationMiddleware>(AllowAuthFunction);
+        builder.UseWhen<AuthorizationMiddleware>(AllowAuthFunction);
         builder.UseMiddleware<ExceptionHandlingMiddleware>();
     })
     .ConfigureServices(services =>
@@ -19,4 +20,7 @@ var host = new HostBuilder()
     })
     .Build();
 
-host.Run();
+await host.RunAsync();
+
+bool AllowAuthFunction(FunctionContext context) =>
+    !context.FunctionDefinition.Name.Equals("auth", StringComparison.OrdinalIgnoreCase);
