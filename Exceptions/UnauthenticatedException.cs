@@ -1,0 +1,2 @@
+public class UnauthenticatedException : Exception
+{}
