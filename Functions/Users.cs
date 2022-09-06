@@ -2,6 +2,7 @@ using FluentValidation.Results;
 using MediatR;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 
 namespace Mobnet.Trip.Application.Functions;
 
@@ -14,6 +15,22 @@ public class UserFunctions
     {
         _logger = loggerFactory.CreateLogger<UserFunctions>();
         _mediatr = mediatr;
+    }
+
+    [Function("ReadUser")]
+    [OpenApiOperation(Summary = "Get user informations")]
+    [OpenApiParameter("GUID", In = ParameterLocation.Path, Type = typeof(Guid), Required = true, Description = "User Id")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserInfo))]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
+    [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(IEnumerable<ValidationFailure>))]
+    public async Task<HttpResponseData> ReadUser(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user")] HttpRequestData req)
+    {
+        var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand?>();
+        var commandResult = await _mediatr.Send(addUserCommand ?? throw new ArgumentNullException());
+
+        return await req.JsonResult<bool>(commandResult);
     }
 
     [Function("AddUser")]
