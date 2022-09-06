@@ -4,9 +4,19 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.IdentityModel.Tokens;
 
-public class TokenService 
+public class TokenService : ITokenService
 {
-    public string GetAsync()
+    private const string IdIdentifier = "id";
+    private const string AccountIdentifier = "account";
+    private const string NameIdentifier = "name";
+    private const string EmailIdentifier = "email";
+    private const string PermissionsIdentifier = "permissions";
+    private readonly IConfiguration _configuration;
+
+    public TokenService(IConfiguration configuration) =>
+        _configuration = configuration;
+
+    public string Get()
     {
         var claims = new List<Claim>
         {
@@ -20,7 +30,7 @@ public class TokenService
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
         var tokenHandler = new JwtSecurityTokenHandler();
-		var tokenKey = Encoding.UTF8.GetBytes("hbfskbghisbgsbgdsijgerginergikxbghkbvkfbdrfibgrgierhgeruogr");
+		var tokenKey = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("JwtKey"));
 		var tokenDescriptor = new SecurityTokenDescriptor
 		{
 		    Subject = claimsIdentity,
@@ -31,5 +41,23 @@ public class TokenService
 		var token = tokenHandler.CreateToken(tokenDescriptor);
 		
         return tokenHandler.WriteToken(token);
+    }
+
+    public CurrentUserFeature GetCurrentUser(string token)
+    {
+        var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration.GetValue<string>("JwtKey")));
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenOptions = new TokenValidationParameters { ValidateIssuerSigningKey = true, ValidateIssuer = false, ValidateAudience = false, IssuerSigningKey = key};
+        
+        tokenHandler.ValidateToken(token, tokenOptions, out SecurityToken validatedToken);
+
+        var securityToken = validatedToken as JwtSecurityToken;
+        var id = securityToken?.Claims.FirstOrDefault(c => c.Type == IdIdentifier)?.Value ?? string.Empty;
+        var account = securityToken?.Claims.FirstOrDefault(c => c.Type == AccountIdentifier)?.Value ?? string.Empty;
+        var name = securityToken?.Claims.FirstOrDefault(c => c.Type == NameIdentifier)?.Value ?? string.Empty;
+        var email = securityToken?.Claims.FirstOrDefault(c => c.Type == EmailIdentifier)?.Value ?? string.Empty;
+        var permissions = securityToken?.Claims.FirstOrDefault(c => c.Type == PermissionsIdentifier)?.Value.Split(";") ?? Enumerable.Empty<string>();
+        
+        return new CurrentUserFeature(Guid.Parse(id), int.Parse(account), name, email, permissions);
     }
 }

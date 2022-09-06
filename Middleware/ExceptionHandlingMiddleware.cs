@@ -1,11 +1,3 @@
-using System.Net;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using FluentValidation;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Functions.Worker.Middleware;
-
 public class ExceptionHandlingMiddleware : IFunctionsWorkerMiddleware
 {
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
@@ -14,34 +6,32 @@ public class ExceptionHandlingMiddleware : IFunctionsWorkerMiddleware
         {
             await next(context);
         }
-        catch (Exception exception)
+        catch(UnauthenticatedException)
         {
-            if (exception.InnerException is ValidationException validation)
-            {
-                var httpReqData = await context.GetHttpRequestDataAsync();
-
-                if (httpReqData != null)
-                {
-                    var newHttpResponse = httpReqData.CreateResponse(HttpStatusCode.BadRequest);
-                    var jsonResult = JsonSerializer.SerializeToUtf8Bytes(validation.Errors, new JsonSerializerOptions
-                    {
-                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                    });
-
-                    await newHttpResponse.WriteBytesAsync(jsonResult);
-                    newHttpResponse.Headers.Add("Content-type", "application/json; charset=utf-8");
-                    context.GetInvocationResult().Value = newHttpResponse;
-                }
-            }
-            else
-            {
-                var httpReqData = await context.GetHttpRequestDataAsync();
-                var response = httpReqData.CreateResponse();
-
-                await response.WriteStringAsync(exception.Message);
-
-                context.GetInvocationResult().Value = response;
-            }
+            context.GetInvocationResult().Value = await CreateResponse(context, HttpStatusCode.Unauthorized);
         }
+        catch(UnauthorizedAccessException)
+        {
+            context.GetInvocationResult().Value = await CreateResponse(context, HttpStatusCode.Forbidden);
+        }
+        catch (AggregateException exception)
+        {
+            context.GetInvocationResult().Value = await CreateResponse(context, HttpStatusCode.BadRequest, exception);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    private async Task<HttpResponseData?> CreateResponse(FunctionContext context, HttpStatusCode statusCode, Exception? exception = null)
+    {
+        var requestData = await context.GetHttpRequestDataAsync();
+        var response = requestData?.CreateResponse(statusCode);
+
+        if (exception?.InnerException is ValidationException validationException && response is not null)
+            await response.WriteAsJsonAsync(validationException?.Errors, statusCode);
+
+        return response;
     }
 }

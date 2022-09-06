@@ -1,10 +1,9 @@
-using System.Net;
+using FluentValidation.Results;
 using MediatR;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 
- namespace Mobnet.Trip.Application.Functions;
+namespace Mobnet.Trip.Application.Functions;
 
 public class UserFunctions
 {
@@ -18,32 +17,50 @@ public class UserFunctions
     }
 
     [Function("AddUser")]
+    [OpenApiOperation(Summary = "Add new user")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "User added")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
+    [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(IEnumerable<ValidationFailure>))]
     public async Task<HttpResponseData> AddUser(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user")] HttpRequestData req)
     {
-        var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand>();
-        var commandResult = await _mediatr.Send(addUserCommand);
+        var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand?>();
+        var commandResult = await _mediatr.Send(addUserCommand ?? throw new ArgumentNullException());
 
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-        response.WriteString(commandResult.ToString());
-
-        return response;
+        return await req.JsonResult<bool>(commandResult);
     }
 
     [Function("EditUser")]
+    [OpenApiOperation(Summary = "Edit user informations")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "User edited")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
+    [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(IEnumerable<ValidationFailure>))]
     public async Task<HttpResponseData> EditUser(
         [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "user")] HttpRequestData req)
     {
         var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand>();
-        var commandResult = await _mediatr.Send(addUserCommand);
-
+        var commandResult = await _mediatr.Send(addUserCommand ?? throw new ArgumentNullException());
         var response = req.CreateResponse(HttpStatusCode.OK);
-        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-        response.WriteString(commandResult.ToString());
+        await response.WriteAsJsonAsync<bool>(commandResult);
 
         return response;
+    }
+
+    [Function("TestDeleteUser")]
+    [OpenApiOperation(Summary = "Delete user")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "User deleted")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
+    [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(IEnumerable<ValidationFailure>))]
+    public async Task<HttpResponseData> DeleteUser(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "user")] HttpRequestData req)
+    {
+        var addUserCommand = await req.ReadFromJsonAsync<AddUserCommand?>();
+        var commandResult = await _mediatr.Send(addUserCommand ?? throw new ArgumentNullException());
+
+        return await req.JsonResult<bool>(commandResult);
     }
 }

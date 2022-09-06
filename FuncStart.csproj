@@ -10,11 +10,11 @@
     <PackageReference Include="FluentValidation" Version="11.2.1" />
     <PackageReference Include="FluentValidation.Aspnetcore" Version="11.2.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.2.1" />
-    <PackageReference Include="JWT" Version="9.0.3" />
     <PackageReference Include="MediatR" Version="10.0.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.8.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.12" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="1.4.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.7.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.1" />
@@ -30,5 +30,11 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
+    <Using Include="Microsoft.Azure.Functions.Worker" />
+    <Using Include="Microsoft.Azure.Functions.Worker.Http" />
+    <Using Include="Microsoft.Azure.Functions.Worker.Middleware" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="System.Net" />
+    <Using Include="FluentValidation" />
   </ItemGroup>
 </Project>

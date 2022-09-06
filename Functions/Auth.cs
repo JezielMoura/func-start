@@ -1,30 +1,34 @@
-using System.Net;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+using FluentValidation.Results;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 
-namespace func_start
+public class Auth
 {
-    public class Auth
+    private readonly ILogger _logger;
+    private readonly ITokenService _tokenService;
+
+    public Auth(ILoggerFactory loggerFactory, ITokenService tokenService)
     {
-        private readonly ILogger _logger;
+        _logger = loggerFactory.CreateLogger<Auth>();
+        _tokenService = tokenService;
+    }
 
-        public Auth(ILoggerFactory loggerFactory)
-        {
-            _logger = loggerFactory.CreateLogger<Auth>();
-        }
+    [Function("Auth")]
+    [OpenApiRequestBody("application/json", typeof(UserInfo))]
+    [OpenApiOperation(Summary = "E-mail and Password Authentication")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "text/plain", typeof(string))]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
+    [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(IEnumerable<ValidationFailure>))]
+    public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+    {
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-        [Function("Auth")]
-        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
-        {
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+        response.WriteString(_tokenService.Get());
 
-            var token = new TokenService().GetAsync();
-
-            response.WriteString(token);
-
-            return response;
-        }
+        return response;
     }
 }
+
+public record UserInfo(string Email, string Password);
