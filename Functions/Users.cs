@@ -35,6 +35,7 @@ public class UserFunctions
 
     [Function("AddUser")]
     [OpenApiOperation(Summary = "Add new user")]
+    [OpenApiRequestBody("application/json", typeof(AddUserCommand))]
     [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "User added")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
@@ -49,6 +50,7 @@ public class UserFunctions
     }
 
     [Function("EditUser")]
+    [OpenApiRequestBody("application/json", typeof(AddUserCommand))]
     [OpenApiOperation(Summary = "Edit user informations")]
     [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "User edited")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
@@ -68,6 +70,7 @@ public class UserFunctions
 
     [Function("TestDeleteUser")]
     [OpenApiOperation(Summary = "Delete user")]
+    [OpenApiParameter("GUID", In = ParameterLocation.Path, Type = typeof(Guid), Required = true, Description = "User Id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "User deleted")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Forbidden")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Unauthorized")]
