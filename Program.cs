@@ -18,6 +18,7 @@ var host = new HostBuilder()
         services.AddValidatorsFromAssembly(Assembly.GetEntryAssembly());
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
         services.AddScoped<ITokenService, TokenService>();
+        services.AddApplicationInsightsTelemetryWorkerService();
     })
     .Build();
 

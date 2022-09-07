@@ -25,6 +25,8 @@ public class Auth
         var response = req.CreateResponse(HttpStatusCode.OK);
         response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
+        _logger.LogError("User login fail");
+
         response.WriteString(_tokenService.Get());
 
         return response;

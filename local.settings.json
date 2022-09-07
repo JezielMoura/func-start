@@ -2,7 +2,12 @@
     "IsEncrypted": false,
     "Values": {
         "JwtKey": "761a4616c39c3339165505f2d2985f858f4eb84b9de92b251566d8341934743d115c101ecc8d6756a022d1738b99b3eef0e23cd3e4fe1913c002d5fbd2180172",
+        "APPLICATIONINSIGHTS_CONNECTION_STRING": "InstrumentationKey=c902bf1f-6012-43b2-b35f-e83f1568fe29;IngestionEndpoint=https://brazilsouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://brazilsouth.livediagnostics.monitor.azure.com/",
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+    },
+    "ApplicationInsights":
+    {
+        "ConnectionString" : "InstrumentationKey=c902bf1f-6012-43b2-b35f-e83f1568fe29;IngestionEndpoint=https://brazilsouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://brazilsouth.livediagnostics.monitor.azure.com/"
     }
 }
