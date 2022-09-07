@@ -8,8 +8,8 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults(builder =>
     {
         builder.UseMiddleware<ExceptionHandlingMiddleware>();
-        builder.UseWhen<AuthenticationMiddleware>(AllowAuthFunction);
-        builder.UseWhen<AuthorizationMiddleware>(AllowAuthFunction);
+        builder.UseWhen<AuthenticationMiddleware>(IdentityRequired);
+        builder.UseWhen<AuthorizationMiddleware>(IdentityRequired);
     })
     .ConfigureOpenApi()
     .ConfigureServices(services =>
@@ -23,7 +23,7 @@ var host = new HostBuilder()
 
 await host.RunAsync();
 
-bool AllowAuthFunction(FunctionContext context)
+bool IdentityRequired(FunctionContext context)
 {
     if (context.FunctionDefinition.Name.Equals("auth", StringComparison.OrdinalIgnoreCase))
         return false;
